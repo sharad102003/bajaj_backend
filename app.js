@@ -30,43 +30,52 @@ app.use((req, res, next) => {
 app.post('/bfhl', (req, res) => {
     console.log('Request body:', req.body); // Log the request body
 
-    const { data } = req.body;
-    if (!data) {
-        console.log('No data provided'); // Log if no data
-        return res.status(400).json({
-            is_success: false,
+    try {
+        const { data } = req.body;
+        if (!data) {
+            console.log('No data provided'); // Log if no data
+            return res.status(400).json({
+                is_success: false,
+                user_id: userId,
+                email,
+                roll_number: rollNumber,
+                numbers: [],
+                alphabets: [],
+                highest_alphabet: []
+            });
+        }
+
+        const numbers = data.filter(item => !isNaN(item));
+        const alphabets = data.filter(item => /^[a-zA-Z]$/.test(item));
+        const highestAlphabet = alphabets.length > 0 ? [alphabets.sort((a, b) => a.toLowerCase() > b.toLowerCase() ? -1 : 1)[0]] : [];
+
+        console.log('Response data:', {
+            is_success: true,
             user_id: userId,
             email,
             roll_number: rollNumber,
-            numbers: [],
-            alphabets: [],
-            highest_alphabet: []
+            numbers,
+            alphabets,
+            highest_alphabet: highestAlphabet
+        }); // Log the response data
+
+        return res.json({
+            is_success: true,
+            user_id: userId,
+            email,
+            roll_number: rollNumber,
+            numbers,
+            alphabets,
+            highest_alphabet: highestAlphabet
+        });
+    } catch (err) {
+        console.error('Internal Server Error:', err); // Log the error
+        return res.status(500).json({
+            is_success: false,
+            message: 'Internal Server Error',
+            error: err.message
         });
     }
-
-    const numbers = data.filter(item => !isNaN(item));
-    const alphabets = data.filter(item => /^[a-zA-Z]$/.test(item));
-    const highestAlphabet = alphabets.length > 0 ? [alphabets.sort((a, b) => a.toLowerCase() > b.toLowerCase() ? -1 : 1)[0]] : [];
-
-    console.log('Response data:', {
-        is_success: true,
-        user_id: userId,
-        email,
-        roll_number: rollNumber,
-        numbers,
-        alphabets,
-        highest_alphabet: highestAlphabet
-    }); // Log the response data
-
-    return res.json({
-        is_success: true,
-        user_id: userId,
-        email,
-        roll_number: rollNumber,
-        numbers,
-        alphabets,
-        highest_alphabet: highestAlphabet
-    });
 });
 
 // GET endpoint
