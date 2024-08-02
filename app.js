@@ -28,12 +28,13 @@ app.use((req, res, next) => {
 
 // POST endpoint
 app.post('/bfhl', (req, res) => {
-    console.log('Request body:', req.body); // Log the request body
-
     try {
+        console.log('Request body:', req.body); // Log the request body
+
         const { data } = req.body;
-        if (!data) {
-            console.log('No data provided'); // Log if no data
+
+        if (!Array.isArray(data)) {
+            console.log('Invalid data format'); // Log if data is not an array
             return res.status(400).json({
                 is_success: false,
                 user_id: userId,
@@ -45,7 +46,7 @@ app.post('/bfhl', (req, res) => {
             });
         }
 
-        const numbers = data.filter(item => !isNaN(item));
+        const numbers = data.filter(item => !isNaN(item) && item.trim() !== '');
         const alphabets = data.filter(item => /^[a-zA-Z]$/.test(item));
         const highestAlphabet = alphabets.length > 0 ? [alphabets.sort((a, b) => a.toLowerCase() > b.toLowerCase() ? -1 : 1)[0]] : [];
 
