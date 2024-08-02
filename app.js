@@ -1,9 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors'); // Import CORS
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors()); // Use CORS middleware
 app.use(bodyParser.json());
 
 const userId = "john_doe_17091999";
