@@ -1,85 +1,56 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors');
-
+const atob = require('atob');  // Use to decode Base64
 const app = express();
+
 const PORT = process.env.PORT || 3000;
-
-// CORS options
-const corsOptions = {
-    origin: '*', // Allow all origins (use specific origin in production)
-    methods: 'GET,POST',
-    allowedHeaders: 'Content-Type',
-};
-
-app.use(cors(corsOptions)); // Use CORS middleware
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
 app.use(bodyParser.json());
 
-// Constants
-const userId = "john_doe_17091999";
-const email = "john@xyz.com";
-const rollNumber = "ABCD123";
-
-// Middleware for logging requests
-app.use((req, res, next) => {
-    console.log(`${req.method} request for '${req.url}'`);
-    next();
-});
-
-// POST endpoint
 app.post('/bfhl', (req, res) => {
-    try {
-        console.log('Request body:', req.body); // Log the request body
+    const { data, file_b64, email, roll_number } = req.body;
 
-        const { data } = req.body;
+    const numbers = data.filter(item => !isNaN(item));
+    const alphabets = data.filter(item => isNaN(item));
+    const lowercaseAlphabets = alphabets.filter(char => /[a-z]/.test(char));
+    
+    // Get the highest lowercase alphabet
+    const highestLowercaseAlphabet = lowercaseAlphabets.length 
+        ? [lowercaseAlphabets.sort().reverse()[0]] 
+        : [];
 
-        if (!Array.isArray(data)) {
-            console.log('Invalid data format'); // Log if data is not an array
-            return res.status(400).json({
-                is_success: false,
-                user_id: userId,
-                email,
-                roll_number: rollNumber,
-                numbers: [],
-                alphabets: [],
-                highest_alphabet: []
-            });
+    // File validation
+    let fileValid = false;
+    let mimeType = '';
+    let fileSizeKB = 0;
+
+    if (file_b64) {
+        try {
+            const fileBuffer = Buffer.from(file_b64, 'base64');
+            mimeType = 'application/octet-stream';  // Default MIME type
+            fileSizeKB = Math.round(fileBuffer.length / 1024);
+            fileValid = true;
+        } catch (e) {
+            fileValid = false;
         }
-
-        const numbers = data.filter(item => !isNaN(item) && item.trim() !== '');
-        const alphabets = data.filter(item => /^[a-zA-Z]$/.test(item));
-        const highestAlphabet = alphabets.length > 0 ? [alphabets.sort((a, b) => a.toLowerCase() > b.toLowerCase() ? -1 : 1)[0]] : [];
-
-        console.log('Response data:', {
-            is_success: true,
-            user_id: userId,
-            email,
-            roll_number: rollNumber,
-            numbers,
-            alphabets,
-            highest_alphabet: highestAlphabet
-        }); // Log the response data
-
-        return res.json({
-            is_success: true,
-            user_id: userId,
-            email,
-            roll_number: rollNumber,
-            numbers,
-            alphabets,
-            highest_alphabet: highestAlphabet
-        });
-    } catch (err) {
-        console.error('Internal Server Error:', err); // Log the error
-        return res.status(500).json({
-            is_success: false,
-            message: 'Internal Server Error',
-            error: err.message
-        });
     }
+
+    res.json({
+        is_success: true,
+        user_id: "your_name_dob",  // Replace with actual name and DOB
+        email: email || "your_email@example.com",
+        roll_number: roll_number || "your_roll_number",
+        numbers,
+        alphabets,
+        highest_lowercase_alphabet: highestLowercaseAlphabet,
+        file_valid: fileValid,
+        file_mime_type: mimeType,
+        file_size_kb: fileSizeKB
+    });
 });
 
-// GET endpoint
 app.get('/bfhl', (req, res) => {
     res.status(200).json({
         operation_code: 1
@@ -87,6 +58,8 @@ app.get('/bfhl', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+
+
+
+
+
